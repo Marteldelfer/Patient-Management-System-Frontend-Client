@@ -1,6 +1,7 @@
+import type {FunctionComponent} from "react";
 import "../index.css";
 
-export const NavBar = () => {
+export const NavBar: FunctionComponent = () => {
 	return (
 		<nav className="bg-white bold font-medium drop-shadow-xl">
 			<div className="flex m-auto w-4/5 max-w-5xl">
@@ -16,4 +17,4 @@ export const NavBar = () => {
 			</div>
 		</nav>
 	)
-}
+};
