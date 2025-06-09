@@ -35,11 +35,11 @@ const TableHeader: FunctionComponent<HeaderProps> = ({props, className}) => {
 };
 
 const TableRow: FunctionComponent<RowProps> = ({props, className, handleEdit, handleDelete}) => {
-	const propsWithouId = removeId(props);
+	const propsWithoutId = removeId(props);
 	return (
 		<>
 			<tr className={className}>
-				{[...propsWithouId].map(([key, value]) => <td className={"text-center p-1"} key={key}>{value}</td>)}
+				{[...propsWithoutId].map(([key, value]) => <td className={"text-center p-1"} key={key}>{value}</td>)}
 				<td className={"text-center p-1"}>
 					<button className={"border pl-3 pr-3 rounded-lg border-blue-700 transition-all duration-150 cursor-pointer hover:bg-blue-700 hover:text-white"} onClick={() => handleEdit(props)}>Edit</button>
 				</td>
