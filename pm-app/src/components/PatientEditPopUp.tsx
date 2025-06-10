@@ -4,21 +4,23 @@ import {useRef} from "react";
 
 interface PatientEditPopUpProps {
 	patient: PatientResponse;
-	updateFunc: (patientId: string) => void;
+	updateFunc: (patientResponse: PatientResponse) => void;
+	className?: string;
 }
 
-function handleEditPatient(patientId: string, request: PatientRequest, updateFunc: () => void) {
+function handleEditPatient(patientId: string, request: PatientRequest, updateFunc: (patientResponse: PatientResponse) => void) {
 	const token = localStorage.getItem('token');
 	fetch("http://localhost:4004/api/patients/" + patientId, {
 		method: "PUT",
 		headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
 		body: JSON.stringify(request),
 	})
-		.then(() => updateFunc())
+		.then(response => response.json())
+		.then((data) => updateFunc(data))
 		.catch(e => console.error(e));
 }
 
-export function PatientEditPopUp({patient, updateFunc}: PatientEditPopUpProps){
+export function PatientEditPopUp({patient, updateFunc, className}: PatientEditPopUpProps){
 
 	const name = useRef(patient.name);
 	const email = useRef(patient.email);
@@ -27,57 +29,59 @@ export function PatientEditPopUp({patient, updateFunc}: PatientEditPopUpProps){
 
 	return (
 		<>
-			<div className={"m-auto w-4/5 max-w-xl border-2 rounded-3xl text-center border-gray-400"}>
-				<div>
-					<label htmlFor="patientName"	>Name</label>
-					<input type="text" defaultValue={patient.name} onChange={
-						(e) => {
-							name.current = e.target.value;
-							console.log(name.current);
-						}
-					}/>
-				</div>
-				<div>
-					<label htmlFor="patientEmail">Email</label>
-					<input type="text" defaultValue={patient.email} onChange={
-						(e) => {
-							email.current = e.target.value;
-							console.log("email", email.current);
-						}
-					} />
-				</div>
-				<div>
-					<label htmlFor="patientAddress">Address</label>
-					<input type="text" defaultValue={patient.address} onChange={
-						(e) => {
-							address.current = e.target.value;
-							console.log(address.current);
-						}
-					}/>
+			<div className={className}>
+				<div className={"m-auto w-4/5 max-w-xl border-2 rounded-3xl text-center border-gray-400 bg-white"}>
 					<div>
-						<label htmlFor="patientDateOfBirth">Date of birth</label>
-						<input type="date" defaultValue={patient.dateOfBirth} onChange={
+						<label htmlFor="patientName">Name</label>
+						<input type="text" defaultValue={patient.name} onChange={
 							(e) => {
-								dateOfBirth.current = e.target.value.toString();
-								console.log(dateOfBirth.current);
+								name.current = e.target.value;
+								console.log(name.current);
 							}
 						}/>
 					</div>
+					<div>
+						<label htmlFor="patientEmail">Email</label>
+						<input type="text" defaultValue={patient.email} onChange={
+							(e) => {
+								email.current = e.target.value;
+								console.log("email", email.current);
+							}
+						}/>
+					</div>
+					<div>
+						<label htmlFor="patientAddress">Address</label>
+						<input type="text" defaultValue={patient.address} onChange={
+							(e) => {
+								address.current = e.target.value;
+								console.log(address.current);
+							}
+						}/>
+						<div>
+							<label htmlFor="patientDateOfBirth">Date of birth</label>
+							<input type="date" defaultValue={patient.dateOfBirth} onChange={
+								(e) => {
+									dateOfBirth.current = e.target.value.toString();
+									console.log(dateOfBirth.current);
+								}
+							}/>
+						</div>
+					</div>
+					<button type="submit" onClick={() => {
+						handleEditPatient(
+							patient.id,
+							{
+								name: name.current,
+								email: email.current,
+								address: address.current,
+								dateOfBirth: dateOfBirth.current.toString()
+							},
+							updateFunc
+						);
+					}}>
+						Edit Patient
+					</button>
 				</div>
-				<button type="submit" onClick={() => {
-					handleEditPatient(
-						patient.id,
-						{
-							name: name.current,
-							email: email.current,
-							address: address.current,
-							dateOfBirth: dateOfBirth.current.toString()
-						},
-						() => updateFunc(patient.id)
-					);
-				}}>
-					Edit Patient
-				</button>
 			</div>
 		</>
 	)

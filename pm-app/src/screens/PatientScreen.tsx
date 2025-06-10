@@ -40,6 +40,8 @@ export function PatientScreen() {
 	const [testPatients, setTestPatients] = useState<PatientResponse[]>([]);
 	const [loading, setLoading] = useState(true);
 
+	const [editPatient, setEditPatient] = useState<PatientResponse | false>(false);
+
 	useEffect(() => {
 
 		async function fetchPatients() {
@@ -61,26 +63,20 @@ export function PatientScreen() {
 	}, [])
 
 	function handleEditPatient(patient: PatientResponse){
-		console.log(`Edit patient ${patient.id}...`);
+		if (!editPatient) {
+			setEditPatient(patient);
+		} else {
+			setEditPatient(false);
+		}
 	}
 
 	function handleDeletePatient(patient: PatientResponse){
-		console.log(`Edit patient ${patient.id}...`);
+		console.log(`Delete patient ${patient.id}...`);
 	}
 
-	function handlePutPatient(patientId: string){
-		fetch(
-			"http://localhost:4004/api/patients/"+patientId,
-			{
-				method: "GET",
-				headers:{"Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("token")}
-			}
-		)
-			.then(response => response.json())
-			.then(data => setTestPatients(
-				testPatients.map(p => p.id === data.id ? data : p
-				)))
-			.catch(e => console.error(e));
+	function updatePut(patientResponse: PatientResponse){
+		setTestPatients(testPatients.map(p => p.id === patientResponse.id ? patientResponse : p));
+		handleEditPatient(patientResponse);
 	}
 
 	return (
@@ -90,7 +86,7 @@ export function PatientScreen() {
 
 			<div className={"p-10"}>
 				{!loading ? (<Table patients={testPatients} handleEditPatient={handleEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
-				{!loading ? (<PatientEditPopUp patient={testPatients[0]} updateFunc={handlePutPatient}></PatientEditPopUp>) : (<div></div>)}
+				{editPatient ? (<PatientEditPopUp className={"absolute inset-0 content-center"} patient={editPatient} updateFunc={updatePut}></PatientEditPopUp>) : (<div></div>)}
 			</div>
 		</>
 	)
