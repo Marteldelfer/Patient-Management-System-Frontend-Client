@@ -4,19 +4,21 @@ import {useRef} from "react";
 
 interface PatientEditPopUpProps {
 	patient: PatientResponse;
+	updateFunc: (patientId: string) => void;
 }
 
-function handleEditPatient(patientId: string, request: PatientRequest) {
+function handleEditPatient(patientId: string, request: PatientRequest, updateFunc: () => void) {
 	const token = localStorage.getItem('token');
 	fetch("http://localhost:4004/api/patients/" + patientId, {
 		method: "PUT",
 		headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
 		body: JSON.stringify(request),
 	})
+		.then(() => updateFunc())
 		.catch(e => console.error(e));
 }
 
-export function PatientEditPopUp({patient}: PatientEditPopUpProps){
+export function PatientEditPopUp({patient, updateFunc}: PatientEditPopUpProps){
 
 	const name = useRef(patient.name);
 	const email = useRef(patient.email);
@@ -62,9 +64,18 @@ export function PatientEditPopUp({patient}: PatientEditPopUpProps){
 						}/>
 					</div>
 				</div>
-				<button type="submit" onClick={() => handleEditPatient(patient.id,
-					{name: name.current, email: email.current, address: address.current, dateOfBirth: dateOfBirth.current.toString()}
-				)}>
+				<button type="submit" onClick={() => {
+					handleEditPatient(
+						patient.id,
+						{
+							name: name.current,
+							email: email.current,
+							address: address.current,
+							dateOfBirth: dateOfBirth.current.toString()
+						},
+						() => updateFunc(patient.id)
+					);
+				}}>
 					Edit Patient
 				</button>
 			</div>

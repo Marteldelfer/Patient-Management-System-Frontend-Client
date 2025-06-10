@@ -68,6 +68,21 @@ export function PatientScreen() {
 		console.log(`Edit patient ${patient.id}...`);
 	}
 
+	function handlePutPatient(patientId: string){
+		fetch(
+			"http://localhost:4004/api/patients/"+patientId,
+			{
+				method: "GET",
+				headers:{"Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("token")}
+			}
+		)
+			.then(response => response.json())
+			.then(data => setTestPatients(
+				testPatients.map(p => p.id === data.id ? data : p
+				)))
+			.catch(e => console.error(e));
+	}
+
 	return (
 
 		<>
@@ -75,7 +90,7 @@ export function PatientScreen() {
 
 			<div className={"p-10"}>
 				{!loading ? (<Table patients={testPatients} handleEditPatient={handleEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
-				{!loading ? (<PatientEditPopUp patient={testPatients[0]}></PatientEditPopUp>) : (<div></div>)}
+				{!loading ? (<PatientEditPopUp patient={testPatients[0]} updateFunc={handlePutPatient}></PatientEditPopUp>) : (<div></div>)}
 			</div>
 		</>
 	)
