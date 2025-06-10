@@ -1,34 +1,26 @@
-import {type FunctionComponent, useEffect, useState} from 'react'
-import {Table} from "../components/Table.tsx";
 import '../index.css'
-import {NavBar} from "../components/Navbar.tsx";
 
-interface PatientResponse {
+import {useState, useEffect} from "react";
+
+import {Table} from "../components/Table.tsx";
+import {NavBar} from "../components/Navbar.tsx";
+import {PatientEditPopUp} from "../components/PatientEditPopUp.tsx";
+
+export interface PatientResponse {
 	"id": string,
 	"name": string,
 	"email": string,
 	"address": string,
 	"dateOfBirth": string
 }
-interface PatientRequest {
+export interface PatientRequest {
 	name: string,
 	email: string,
 	address: string,
 	dateOfBirth: string
 }
 
-const objToMap = (obj: PatientResponse | PatientRequest): Map<string, string> => {
-	return (new Map(Object.entries(obj)));
-}
-
-const handleEditPatient = (patient: Map<string, string>) => {
-	console.log(`Edit ${patient.get("id")}`)
-}
-const handleDeletePatient = (patient: Map<string, string>) => {
-	console.log(`Delete ${patient.get("id")}`)
-}
-
-const fetchToken = async () => {
+async function fetchToken(){
 
 	const response = await fetch("http://localhost:4004/auth/login", {
 		method: "POST",
@@ -43,31 +35,38 @@ const fetchToken = async () => {
 	localStorage.setItem("token", data.token);
 }
 
-export const PatientScreen: FunctionComponent = () => {
+export function PatientScreen() {
 
-	const [testPatients, setTestPatients] = useState<Map<string, string> | null>(null);
+	const [testPatients, setTestPatients] = useState<PatientResponse[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 
-		const fetchPatients = async () => {
-			let token = localStorage.getItem("token");
-			if (token === null) {
-				await fetchToken();
-				token = localStorage.getItem("token")
-			}
-			const response = await fetch("http://localhost:4004/api/patients",{
+		async function fetchPatients() {
+
+			await fetchToken();
+			const token = localStorage.getItem("token")
+
+			const data: PatientResponse[] = await fetch("http://localhost:4004/api/patients",{
 				method: "GET",
 				headers: {"Authorization": `Bearer ${token}`}
-			});
-			const data: Array<PatientResponse> = await response.json();
-			const res = data.map(patient => objToMap(patient));
-			setTestPatients(res);
+			})
+				.then(response => response.json())
+				.catch(e => console.error(e));
+			setTestPatients(data);
 			setLoading(false);
 		}
 
 		fetchPatients();
 	}, [])
+
+	function handleEditPatient(patient: PatientResponse){
+		console.log(`Edit patient ${patient.id}...`);
+	}
+
+	function handleDeletePatient(patient: PatientResponse){
+		console.log(`Edit patient ${patient.id}...`);
+	}
 
 	return (
 
@@ -75,7 +74,8 @@ export const PatientScreen: FunctionComponent = () => {
 			<NavBar></NavBar>
 
 			<div className={"p-10"}>
-				{!loading ? (<Table props={testPatients} handleEdit={handleEditPatient} handleDelete={handleDeletePatient}></Table>) : (<div></div>)}
+				{!loading ? (<Table patients={testPatients} handleEditPatient={handleEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
+				{!loading ? (<PatientEditPopUp patient={testPatients[0]}></PatientEditPopUp>) : (<div></div>)}
 			</div>
 		</>
 	)
