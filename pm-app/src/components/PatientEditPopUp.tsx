@@ -114,7 +114,7 @@ export function PatientEditPopUp({patient, updateFunc, className, cancelFunc}: P
 						</button>
 						<button onClick={cancelFunc} className={
 							"border-2 rounded-xl p-1 pl-3 pr-3 border-red-700 m-1 ml-3 mr-3 transform duration-150 cursor-pointer hover:bg-red-700 hover:text-white"
-						}>Cancelar
+						}>Cancel
 						</button>
 					</div>
 				</div>

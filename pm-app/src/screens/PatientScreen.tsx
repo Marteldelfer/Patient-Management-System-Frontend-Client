@@ -1,89 +1,128 @@
-import '../index.css'
+import "../index.css";
 
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 
-import {Table} from "../components/Table.tsx";
-import {NavBar} from "../components/Navbar.tsx";
-import {PatientEditPopUp} from "../components/PatientEditPopUp.tsx";
+import { Table } from "../components/Table.tsx";
+import { NavBar } from "../components/Navbar.tsx";
+import { PatientEditPopUp } from "../components/PatientEditPopUp.tsx";
+import { PatientDeletePopUp } from "../components/PatientDeletePopUp.tsx";
 
 export interface PatientResponse {
-	"id": string,
-	"name": string,
-	"email": string,
-	"address": string,
-	"dateOfBirth": string
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  dateOfBirth: string;
 }
 export interface PatientRequest {
-	name: string,
-	email: string,
-	address: string,
-	dateOfBirth: string
+  name: string;
+  email: string;
+  address: string;
+  dateOfBirth: string;
 }
 
-async function fetchToken(){
-
-	const response = await fetch("http://localhost:4004/auth/login", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		}, body: JSON.stringify({
-			email: "testuser@test.com",
-			password: "password123"
-		})
-	});
-	const data = await response.json();
-	localStorage.setItem("token", data.token);
+async function fetchToken() {
+  const response = await fetch("http://localhost:4004/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: "testuser@test.com",
+      password: "password123",
+    }),
+  });
+  const data = await response.json();
+  localStorage.setItem("token", data.token);
 }
 
 export function PatientScreen() {
+  const [testPatients, setTestPatients] = useState<PatientResponse[]>([]);
+  const [loading, setLoading] = useState(true);
 
-	const [testPatients, setTestPatients] = useState<PatientResponse[]>([]);
-	const [loading, setLoading] = useState(true);
+  const [editPatient, setEditPatient] = useState<PatientResponse | false>(
+    false
+  );
+	const [deletePatient, setDeletePatient] = useState<PatientResponse | false>(false);
 
-	const [editPatient, setEditPatient] = useState<PatientResponse | false>(false);
+  useEffect(() => {
+    async function fetchPatients() {
+      await fetchToken();
+      const token = localStorage.getItem("token");
 
-	useEffect(() => {
+      const data: PatientResponse[] = await fetch(
+        "http://localhost:4004/api/patients",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+        .then((response) => response.json())
+        .catch((e) => console.error(e));
+      setTestPatients(data);
+      setLoading(false);
+    }
 
-		async function fetchPatients() {
+    fetchPatients();
+  }, []);
 
-			await fetchToken();
-			const token = localStorage.getItem("token")
+  function handleDeletePatient(patient: PatientResponse) {
+    setDeletePatient(patient);
+  }
 
-			const data: PatientResponse[] = await fetch("http://localhost:4004/api/patients",{
-				method: "GET",
-				headers: {"Authorization": `Bearer ${token}`}
-			})
-				.then(response => response.json())
-				.catch(e => console.error(e));
-			setTestPatients(data);
-			setLoading(false);
-		}
+  function updatePut(patientResponse: PatientResponse) {
+    setTestPatients(
+      testPatients.map((p) =>
+        p.id === patientResponse.id ? patientResponse : p
+      )
+    );
+    setEditPatient(false);
+  }
 
-		fetchPatients();
-	}, [])
-
-	function handleDeletePatient(patient: PatientResponse){
-		console.log(`Delete patient ${patient.id}...`);
+	function updateDelete(patientId: string) {
+		setTestPatients(
+			testPatients.filter(p => p.id !== patientId)
+		);
+		setDeletePatient(false);
 	}
 
-	function updatePut(patientResponse: PatientResponse){
-		setTestPatients(testPatients.map(p => p.id === patientResponse.id ? patientResponse : p));
-		setEditPatient(false);
-	}
+  return (
+    <>
+      <NavBar></NavBar>
 
-	return (
-
-		<>
-			<NavBar></NavBar>
-
-			<div className={"p-10"}>
-				{!loading ? (<Table patients={testPatients} handleEditPatient={setEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
-				{editPatient ? (
-						<div className={"absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"}>
-						<PatientEditPopUp patient={editPatient} cancelFunc={() => setEditPatient(false)} updateFunc={updatePut}></PatientEditPopUp>
+      <div className={"p-10"}>
+        {!loading ? (
+          <Table
+            patients={testPatients}
+            handleEditPatient={setEditPatient}
+            handleDeletePatient={handleDeletePatient}
+          ></Table>
+        ) : (
+          <div></div>
+        )}
+        {editPatient ? (
+          <div
+            className={
+              "absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"
+            }
+          >
+            <PatientEditPopUp
+              patient={editPatient}
+              cancelFunc={() => setEditPatient(false)}
+              updateFunc={updatePut}
+            ></PatientEditPopUp>
+          </div>
+        ) : (
+          <div></div>
+        )}
+				{deletePatient ? (
+					<div className={
+              "absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"
+            }>
+						<PatientDeletePopUp patient={deletePatient} cancelFunc={() => setDeletePatient(false)} updateFunc={updateDelete}></PatientDeletePopUp>
 					</div>
 				) : (<div></div>)}
-			</div>
-		</>
-	)
+      </div>
+    </>
+  );
 }
