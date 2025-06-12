@@ -62,21 +62,13 @@ export function PatientScreen() {
 		fetchPatients();
 	}, [])
 
-	function handleEditPatient(patient: PatientResponse){
-		if (!editPatient) {
-			setEditPatient(patient);
-		} else {
-			setEditPatient(false);
-		}
-	}
-
 	function handleDeletePatient(patient: PatientResponse){
 		console.log(`Delete patient ${patient.id}...`);
 	}
 
 	function updatePut(patientResponse: PatientResponse){
 		setTestPatients(testPatients.map(p => p.id === patientResponse.id ? patientResponse : p));
-		handleEditPatient(patientResponse);
+		setEditPatient(false);
 	}
 
 	return (
@@ -85,8 +77,12 @@ export function PatientScreen() {
 			<NavBar></NavBar>
 
 			<div className={"p-10"}>
-				{!loading ? (<Table patients={testPatients} handleEditPatient={handleEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
-				{editPatient ? (<PatientEditPopUp className={"absolute inset-0 content-center"} patient={editPatient} updateFunc={updatePut}></PatientEditPopUp>) : (<div></div>)}
+				{!loading ? (<Table patients={testPatients} handleEditPatient={setEditPatient} handleDeletePatient={handleDeletePatient}></Table>) : (<div></div>)}
+				{editPatient ? (
+						<div className={"absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"}>
+						<PatientEditPopUp patient={editPatient} cancelFunc={() => setEditPatient(false)} updateFunc={updatePut}></PatientEditPopUp>
+					</div>
+				) : (<div></div>)}
 			</div>
 		</>
 	)
