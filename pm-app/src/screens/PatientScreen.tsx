@@ -6,6 +6,7 @@ import { Table } from "../components/Table.tsx";
 import { NavBar } from "../components/Navbar.tsx";
 import { PatientEditPopUp } from "../components/PatientEditPopUp.tsx";
 import { PatientDeletePopUp } from "../components/PatientDeletePopUp.tsx";
+import { PatientCreatePopUp } from "../components/PatientCreatePopUp.tsx";
 
 export interface PatientResponse {
   id: string;
@@ -43,7 +44,10 @@ export function PatientScreen() {
   const [editPatient, setEditPatient] = useState<PatientResponse | false>(
     false
   );
-	const [deletePatient, setDeletePatient] = useState<PatientResponse | false>(false);
+  const [deletePatient, setDeletePatient] = useState<PatientResponse | false>(
+    false
+  );
+  const [createPatient, setCreatePatient] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchPatients() {
@@ -66,10 +70,6 @@ export function PatientScreen() {
     fetchPatients();
   }, []);
 
-  function handleDeletePatient(patient: PatientResponse) {
-    setDeletePatient(patient);
-  }
-
   function updatePut(patientResponse: PatientResponse) {
     setTestPatients(
       testPatients.map((p) =>
@@ -79,12 +79,15 @@ export function PatientScreen() {
     setEditPatient(false);
   }
 
-	function updateDelete(patientId: string) {
-		setTestPatients(
-			testPatients.filter(p => p.id !== patientId)
-		);
-		setDeletePatient(false);
-	}
+  function updateDelete(patientId: string) {
+    setTestPatients(testPatients.filter((p) => p.id !== patientId));
+    setDeletePatient(false);
+  }
+
+  function updatePost(patientResponse: PatientResponse) {
+    setTestPatients([...testPatients, patientResponse]);
+    setCreatePatient(false);
+  }
 
   return (
     <>
@@ -95,7 +98,8 @@ export function PatientScreen() {
           <Table
             patients={testPatients}
             handleEditPatient={setEditPatient}
-            handleDeletePatient={handleDeletePatient}
+            handleDeletePatient={setDeletePatient}
+            handleCreatePatient={setCreatePatient}
           ></Table>
         ) : (
           <div></div>
@@ -115,13 +119,35 @@ export function PatientScreen() {
         ) : (
           <div></div>
         )}
-				{deletePatient ? (
-					<div className={
+        {deletePatient ? (
+          <div
+            className={
               "absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"
-            }>
-						<PatientDeletePopUp patient={deletePatient} cancelFunc={() => setDeletePatient(false)} updateFunc={updateDelete}></PatientDeletePopUp>
-					</div>
-				) : (<div></div>)}
+            }
+          >
+            <PatientDeletePopUp
+              patient={deletePatient}
+              cancelFunc={() => setDeletePatient(false)}
+              updateFunc={updateDelete}
+            ></PatientDeletePopUp>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        {createPatient ? (
+          <div
+            className={
+              "absolute inset-0 content-center backdrop-brightness-75 backdrop-blur-[1px] transition-all duration-600"
+            }
+          >
+            <PatientCreatePopUp
+              cancelFunc={() => setCreatePatient(false)}
+              updateFunc={updatePost}
+            ></PatientCreatePopUp>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
     </>
   );
